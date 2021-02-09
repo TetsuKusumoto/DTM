@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # ファイルを読み込み グレースケール化
 # img = cv2.imread("shapes.png", cv2.IMREAD_GRAYSCALE)
 # img = cv2.imread("triangle_test3.png", cv2.IMREAD_GRAYSCALE)
-img = cv2.imread("flycapture_test/20305900-2021-02-08-204635.pgm", cv2.IMREAD_GRAYSCALE)
+img = cv2.imread("../../flycapture_test/fc2_save210209_2021-02-09-205407-0368.pgm", cv2.IMREAD_GRAYSCALE)
 # plt.figure(figsize=(10, 10))
 # img2 = img[:,:,::-1]
 # plt.xticks([]), plt.yticks([])
@@ -15,7 +15,7 @@ plt.show()
 # cv2.imshow('output_shapes.png', img)
 # しきい値指定によるフィルタリング
 # _, threshold = cv2.threshold(img, 240, 255, cv2.THRESH_BINARY)
-_, threshold = cv2.threshold(img, 220, 235, cv2.THRESH_BINARY)
+_, threshold = cv2.threshold(img, 240, 255, cv2.THRESH_BINARY)
 
 # 輪郭を抽出
 # _, contours, _ = cv2.findContours(threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
