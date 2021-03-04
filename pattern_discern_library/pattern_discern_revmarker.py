@@ -3,9 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # ファイルを読み込み グレースケール化
-# img = cv2.imread("shapes.png", cv2.IMREAD_GRAYSCALE)
-# img = cv2.imread("triangle_test3.png", cv2.IMREAD_GRAYSCALE)
-img = cv2.imread("flycapture_exper_room/210303/20305900-2021-03-03-205414.pgm", cv2.IMREAD_GRAYSCALE)
+# img = cv2.imread("flycapture_exper_room/210303/20305900-2021-03-03-205436.pgm", cv2.IMREAD_GRAYSCALE)
+img = cv2.imread("flycapture_exper_room/210303/20305900-2021-03-03-205631.pgm", cv2.IMREAD_GRAYSCALE)
 img = img[150:450, 500:900]
 # plt.figure(figsize=(10, 10))
 # img2 = img[:,:,::-1]
@@ -93,20 +92,32 @@ for i in range(9):
 print("Conbination", Conbination)
 Flist = []
 for i in range(len(Conbination)):
-    F = np.linalg.norm(centerlist[Conbination[i][0][0]] - centerlist[Conbination[i][0][1]]) ** 2 + np.linalg.norm(centerlist[Conbination[i][1][0]] - centerlist[Conbination[i][1][1]]) ** 2 + np.linalg.norm(centerlist[Conbination[i][1][0]] - centerlist[Conbination[i][1][2]]) ** 2 + np.linalg.norm(centerlist[Conbination[i][1][1]] - centerlist[Conbination[i][1][2]]) ** 2
+    # F = np.linalg.norm(centerlist[Conbination[i][0][0]] - centerlist[Conbination[i][0][1]]) ** 2 + np.linalg.norm(centerlist[Conbination[i][1][0]] - centerlist[Conbination[i][1][1]]) ** 2 + np.linalg.norm(centerlist[Conbination[i][1][0]] - centerlist[Conbination[i][1][2]]) ** 2 + np.linalg.norm(centerlist[Conbination[i][1][1]] - centerlist[Conbination[i][1][2]]) ** 2
+    F = 0
+    for j in range(4):
+        for k in range(j):
+            F += np.linalg.norm(centerlist[Conbination[i][0][j]] - centerlist[Conbination[i][0][k]]) ** 2
+    for j in range(5):
+        for k in range(j):
+            F += np.linalg.norm(centerlist[Conbination[i][1][j]] - centerlist[Conbination[i][1][k]]) ** 2
     Flist.append(F)
     print(F)
 
 minindex = np.argmin(Flist)
 minconb = Conbination[minindex]
-print(minconb)
+print("minconb", minconb)
 
 print(centerlist)
 cv2.circle(img, (centerlist[minconb[0][0]][0], centerlist[minconb[0][0]][1]), 10, (200, 0, 0), thickness=-1)
 cv2.circle(img, (centerlist[minconb[0][1]][0], centerlist[minconb[0][1]][1]), 10, (200, 0, 0), thickness=-1)
+cv2.circle(img, (centerlist[minconb[0][2]][0], centerlist[minconb[0][2]][1]), 10, (200, 0, 0), thickness=-1)
+cv2.circle(img, (centerlist[minconb[0][3]][0], centerlist[minconb[0][3]][1]), 10, (200, 0, 0), thickness=-1)
 cv2.circle(img, (centerlist[minconb[1][0]][0], centerlist[minconb[1][0]][1]), 10, (0, 0, 200), thickness=-1)
 cv2.circle(img, (centerlist[minconb[1][1]][0], centerlist[minconb[1][1]][1]), 10, (0, 0, 200), thickness=-1)
 cv2.circle(img, (centerlist[minconb[1][2]][0], centerlist[minconb[1][2]][1]), 10, (0, 0, 200), thickness=-1)
+cv2.circle(img, (centerlist[minconb[1][3]][0], centerlist[minconb[1][3]][1]), 10, (0, 0, 200), thickness=-1)
+cv2.circle(img, (centerlist[minconb[1][4]][0], centerlist[minconb[1][4]][1]), 10, (0, 0, 200), thickness=-1)
+
 
 # 図形の数の結果
 print('Number of triangle = ', triangle)
