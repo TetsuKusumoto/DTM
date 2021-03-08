@@ -115,6 +115,16 @@ cv2.circle(img, (centerlist[minconb[1][3]][0], centerlist[minconb[1][3]][1]), 10
 cv2.circle(img, (centerlist[minconb[1][4]][0], centerlist[minconb[1][4]][1]), 10, (0, 0, 200), thickness=-1)
 
 
+#-------------------------------姿勢推定-----------------------------------
+
+
+
+
+
+
+
+
+
 # 図形の数の結果
 print('Number of triangle = ', triangle)
 print('Number of rectangle = ', rectangle)
