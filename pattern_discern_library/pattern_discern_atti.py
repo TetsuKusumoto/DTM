@@ -1,6 +1,11 @@
 import cv2
+import scipy as sp
+from scipy import optimize
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy import sin, cos
+
+f = 2000
 
 # ファイルを読み込み グレースケール化
 img = cv2.imread("flycapture_exper_room/210303/pattern1/seitsui/20305900-2021-03-03-205352.pgm", cv2.IMREAD_GRAYSCALE)
@@ -114,16 +119,92 @@ cv2.circle(img, (centerlist[minconb[1][2]][0], centerlist[minconb[1][2]][1]), 10
 cv2.circle(img, (centerlist[minconb[1][3]][0], centerlist[minconb[1][3]][1]), 10, (0, 0, 200), thickness=-1)
 cv2.circle(img, (centerlist[minconb[1][4]][0], centerlist[minconb[1][4]][1]), 10, (0, 0, 200), thickness=-1)
 
+#-------------------------------点の特定-----------------------------------
+projection = np.array([centerlist[minconb[0][0]], centerlist[minconb[0][1]], centerlist[minconb[0][2]], centerlist[minconb[0][3]]])
+
 
 #-------------------------------姿勢推定-----------------------------------
+def fourpointest_rev(image, s, marker):
+    f = 2000
+    a0 = np.array([image[0][0], image[0][1], f])
+    a1 = np.array([image[1][0], image[1][1], f])
+    a2 = np.array([image[2][0], image[2][1], f])
+    a3 = np.array([image[3][0], image[3][1], f])
+    a0 = np.array(a0, dtype=float)
+    a1 = np.array(a1, dtype=float)
+    a2 = np.array(a2, dtype=float)
+    a3 = np.array(a3, dtype=float)
+    l01, l12, l02 = np.linalg.norm(marker[0] - marker[1]), np.linalg.norm(marker[1] - marker[2]), np.linalg.norm(marker[2] - marker[0])
+    l03, l13, l23 = np.linalg.norm(marker[0] - marker[3]), np.linalg.norm(marker[1] - marker[3]), np.linalg.norm(marker[2] - marker[3])
+    theta01 = np.arccos(np.inner(a0, a1) / ((a0[0]**2+a0[1]**2+a0[2]**2)**0.5 * (a1[0]**2+a1[1]**2+a1[2]**2)**0.5))
+    theta12 = np.arccos(np.inner(a1, a2) / ((a2[0]**2+a2[1]**2+a2[2]**2)**0.5 * (a1[0]**2+a1[1]**2+a1[2]**2)**0.5))
+    theta02 = np.arccos(np.inner(a0, a2) / ((a0[0]**2+a0[1]**2+a0[2]**2)**0.5 * (a2[0]**2+a2[1]**2+a2[2]**2)**0.5))
+    theta03 = np.arccos(np.inner(a0, a3) / ((a0[0]**2+a0[1]**2+a0[2]**2)**0.5 * (a3[0]**2+a3[1]**2+a3[2]**2)**0.5))
+    theta13 = np.arccos(np.inner(a1, a3) / ((a1[0]**2+a1[1]**2+a1[2]**2)**0.5 * (a3[0]**2+a3[1]**2+a3[2]**2)**0.5))
+    theta23 = np.arccos(np.inner(a2, a3) / ((a2[0]**2+a2[1]**2+a2[2]**2)**0.5 * (a3[0]**2+a3[1]**2+a3[2]**2)**0.5))
+
+    # s = sp.Symbol('s')
+    r1 = l01/2/sin(theta01)
+    r2 = l02/2/sin(theta02)
+    r3 = l03/2/sin(theta03)
+    r1 = np.array(r1, dtype=float);r2 = np.array(r2, dtype=float);r3 = np.array(r3, dtype=float)
 
 
+    if s/2/r1 >= 1 or s/2/r2 >= 1 or s/2/r3 >= 1:
+        F = 1000
+    else:
+        X1vec = 2 * r1 * (cos(theta01) * s / 2 / r1 + sin(theta01) * (4 * r1 ** 2 - s ** 2) ** 0.5 / 2 / r1) * a1 / np.linalg.norm(a1)
+        X2vec = 2 * r2 * (cos(theta02) * s / 2 / r2 + sin(theta02) * (4 * r2 ** 2 - s ** 2) ** 0.5 / 2 / r2) * a2 / np.linalg.norm(a2)
+        X3vec = 2 * r3 * (cos(theta03) * s / 2 / r3 + sin(theta03) * (4 * r3 ** 2 - s ** 2) ** 0.5 / 2 / r3) * a3 / np.linalg.norm(a3)
+        X1vec = np.array(X1vec, dtype=float);X2vec = np.array(X2vec, dtype=float);X3vec = np.array(X3vec, dtype=float)
+        l12 = np.array(l12, dtype=float);l23 = np.array(l23, dtype=float);l13 = np.array(l13, dtype=float)
+        X0vec = a0 / (a0[0] ** 2 + a0[1] ** 2 + a0[2] ** 2) ** 0.5 * s
+
+        F = (np.linalg.norm(X1vec - X2vec) - l12) ** 2 + (np.linalg.norm(X2vec - X3vec) - l23) ** 2 + (np.linalg.norm(X1vec - X3vec) - l13) ** 2
+
+    return F, X0vec, X1vec, X2vec, X3vec
 
 
+def fourpointest_lq_rev(s, image, marker):
+    f = 2000
+    a0 = np.array([image[0][0], image[0][1], f])
+    a1 = np.array([image[1][0], image[1][1], f])
+    a2 = np.array([image[2][0], image[2][1], f])
+    a3 = np.array([image[3][0], image[3][1], f])
+    a0 = np.array(a0, dtype=float);a1 = np.array(a1, dtype=float);a2 = np.array(a2, dtype=float);a3 = np.array(a3, dtype=float)
+    l01, l12, l02 = np.linalg.norm(marker[0] - marker[1]), np.linalg.norm(marker[1] - marker[2]), np.linalg.norm(marker[2] - marker[0])
+    l03, l13, l23 = np.linalg.norm(marker[0] - marker[3]), np.linalg.norm(marker[1] - marker[3]), np.linalg.norm(marker[2] - marker[3])
+    theta01 = np.arccos(np.inner(a0, a1) / ((a0[0]**2+a0[1]**2+a0[2]**2)**0.5 * (a1[0]**2+a1[1]**2+a1[2]**2)**0.5))
+    theta12 = np.arccos(np.inner(a1, a2) / ((a2[0]**2+a2[1]**2+a2[2]**2)**0.5 * (a1[0]**2+a1[1]**2+a1[2]**2)**0.5))
+    theta02 = np.arccos(np.inner(a0, a2) / ((a0[0]**2+a0[1]**2+a0[2]**2)**0.5 * (a2[0]**2+a2[1]**2+a2[2]**2)**0.5))
+    theta03 = np.arccos(np.inner(a0, a3) / ((a0[0]**2+a0[1]**2+a0[2]**2)**0.5 * (a3[0]**2+a3[1]**2+a3[2]**2)**0.5))
+    theta13 = np.arccos(np.inner(a1, a3) / ((a1[0]**2+a1[1]**2+a1[2]**2)**0.5 * (a3[0]**2+a3[1]**2+a3[2]**2)**0.5))
+    theta23 = np.arccos(np.inner(a2, a3) / ((a2[0]**2+a2[1]**2+a2[2]**2)**0.5 * (a3[0]**2+a3[1]**2+a3[2]**2)**0.5))
+
+    # s = sp.Symbol('s')
+    r1 = l01/2/sin(theta01)
+    r2 = l02/2/sin(theta02)
+    r3 = l03/2/sin(theta03)
+    r1 = np.array(r1, dtype=float); r2 = np.array(r2, dtype=float); r3 = np.array(r3, dtype=float)
+
+    if s/2/r1 >= 1 or s/2/r2 >= 1 or s/2/r3 >= 1:
+        F = 1000
+    else:
+        X1vec = 2 * r1 * (cos(theta01)*s/2/r1 + sin(theta01)*(4*r1**2 - s**2)**0.5/2/r1) * a1 / np.linalg.norm(a1)
+        X2vec = 2 * r2 * (cos(theta02)*s/2/r2 + sin(theta02)*(4*r2**2 - s**2)**0.5/2/r2) * a2 / np.linalg.norm(a2)
+        X3vec = 2 * r3 * (cos(theta03)*s/2/r3 + sin(theta03)*(4*r3**2 - s**2)**0.5/2/r3) * a3 / np.linalg.norm(a3)
+        X1vec = np.array(X1vec, dtype=float);X2vec = np.array(X2vec, dtype=float);X3vec = np.array(X3vec, dtype=float)
+        l12 = np.array(l12, dtype=float);l23 = np.array(l23, dtype=float);l13 = np.array(l13, dtype=float)
+        X0vec = a0 / (a0[0] ** 2 + a0[1] ** 2 + a0[2] ** 2) ** 0.5 * s
+
+        F = (np.linalg.norm(X1vec - X2vec) - l12) ** 2 + (np.linalg.norm(X2vec - X3vec) - l23) ** 2 + (np.linalg.norm(X1vec - X3vec) - l13) ** 2
+    return F
 
 
-
-
+marker = np.array([[0.0, 3.0, 0.0], [-4.5, 1.5, 0], [4.5, 1.5, 0], [0.0, 8.1, 0.0]])*0.01
+res = optimize.least_squares(fourpointest_lq_rev, 0.1, args=[projection, marker])
+result = fourpointest_rev(projection, res.x[0], marker)
+print(result)
 
 # 図形の数の結果
 print('Number of triangle = ', triangle)

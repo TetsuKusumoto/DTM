@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # ファイルを読み込み グレースケール化
-# img = cv2.imread("flycapture_exper_room/210303/pattern2/seitsui/20305900-2021-03-03-204831.pgm", cv2.IMREAD_GRAYSCALE)
-img = cv2.imread("flycapture_exper_room/210303/pattern2/naname/20305900-2021-03-03-204707.pgm", cv2.IMREAD_GRAYSCALE)
+img = cv2.imread("flycapture_exper_room/210303/pattern2/seitsui/20305900-2021-03-03-204831.pgm", cv2.IMREAD_GRAYSCALE)
+# img = cv2.imread("flycapture_exper_room/210303/pattern2/naname/20305900-2021-03-03-204707.pgm", cv2.IMREAD_GRAYSCALE)
 # img = img[150:450, 500:900]
 img_plt = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 plt.imshow(img_plt)
